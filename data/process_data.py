@@ -48,9 +48,7 @@ def clean_data(df):
     categories.columns = category_colnames
     categories.head()
     
-    # Convert category values to just numbers 0 or 1
-    categories['related'].astype(str).str.strip().str[-1]
-    
+    # Convert category values to just numbers 0 or 1    
     for column in categories:
     # set each value to be the last character of the string
         categories[column] = categories[column].astype(str).str.strip().str[-1]
@@ -59,15 +57,15 @@ def clean_data(df):
         categories[column] = pd.to_numeric(categories[column])
     
     # drop the original categories column from `df`
-        df = df.drop('categories', axis=1)
+    df = df.drop('categories', axis=1)
 
     # concatenate the original dataframe with the new `categories` dataframe
-        df = pd.concat([df, categories], axis=1) 
-        df = df[df['related'] != 2]
+    df = pd.concat([df, categories], axis=1) 
+    df = df[df['related'] != 2]
     
     # drop duplicates
-        df.drop_duplicates(inplace=True)
-        return df
+    df.drop_duplicates(inplace=True)
+    return df
 
 def save_data(df, database_filename):
     
