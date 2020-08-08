@@ -35,7 +35,6 @@ def load_data(database_filepath):
     df = pd.read_sql_table(table_name, engine)  
     X = df['message']
     Y = df.drop(['message', 'id', 'original', 'genre'], axis=1)
-    
     category_names= Y.columns
     return X, Y, category_names
 
@@ -81,12 +80,13 @@ def build_model():
         ('clf', MultiOutputClassifier(KNeighborsClassifier()))
     ])
     
-#   parameters = {    
-#       'clf__estimator__n_neighbors': [1,10]
-#      }
+    parameters = {    
+        'clf__estimator__n_neighbors': [5,10],
+        'clf__estimator__weights': ['uniform', 'distance']        
+    }
     
-#    cv = GridSearchCV(pipeline, param_grid=parameters)
-    model = pipeline
+    cv = GridSearchCV(pipeline, param_grid=parameters)
+    model = cv
     
     return model
     
@@ -102,10 +102,11 @@ def evaluate_model(model, X_test, Y_test, category_names):
     classification report of each category
     """
     Y_pred=model.predict(X_test)
+    Y_pred_t=np.transpose(Y_pred)
     i = 0
     while i<len(Y_test.columns):
          print(Y_test.columns[i])
-         print(classification_report(Y_test[Y_test.columns[i]], Y_pred[i]))
+         print(classification_report(Y_test[Y_test.columns[i]], Y_pred_t[i]))
          i = i+1
   
 def save_model(model, model_filepath):
@@ -118,6 +119,7 @@ def main():
         database_filepath, model_filepath = sys.argv[1:]
         print('Loading data...\n    DATABASE: {}'.format(database_filepath))
         X, Y, category_names = load_data(database_filepath)
+
         X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
         
         print('Building model...')

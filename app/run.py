@@ -26,11 +26,11 @@ def tokenize(text):
     return clean_tokens
 
 # load data
-engine = create_engine('sqlite:///../data/YourDatabaseName.db')
-df = pd.read_sql_table('YourTableName', engine)
+engine = create_engine('sqlite:///../data/Disaster_Response.db')
+df = pd.read_sql_table('Disaster_Response_Table', engine)
 
 # load model
-model = joblib.load("../models/your_model_name.pkl")
+model = joblib.load("../models/classifier.pkl")
 
 
 # index webpage displays cool visuals and receives user input text for model
@@ -39,9 +39,15 @@ model = joblib.load("../models/your_model_name.pkl")
 def index():
     
     # extract data needed for visuals
-    # TODO: Below is an example - modify to extract data for your own visuals
-    genre_counts = df.groupby('genre').count()['message']
-    genre_names = list(genre_counts.index)
+    # find message count by type and if medical help is needed
+    medical_help = df[df['medical_help'] == 1].groupby('genre').count()['message']
+    medical_help_cats = list(medical_help.index)
+    
+    # find the top 5 categories with the highest percentages shown in the messages
+    top_cats = df.drop(['id', 'message', 'original', 'genre'], axis = 1).sum()/len(df)
+    top_cats =(top_cats.sort_values(ascending=False)[0:5])
+    top_cats_names = list(top_cats.index)
+    top_cats_percentage = top_cats[0]
     
     # create visuals
     # TODO: Below is an example - modify to create your own visuals
@@ -49,18 +55,36 @@ def index():
         {
             'data': [
                 Bar(
-                    x=genre_names,
-                    y=genre_counts
+                    x=medical_help_cats,
+                    y=medical_help
                 )
             ],
 
             'layout': {
-                'title': 'Distribution of Message Genres',
+                'title': 'Distribution of Message by Medical Help and Genres',
                 'yaxis': {
                     'title': "Count"
                 },
                 'xaxis': {
                     'title': "Genre"
+                }
+            }
+        },
+        {
+            'data': [
+                Bar(
+                    x = top_cats_names,
+                    y = top_cats_percentage
+                )
+            ],
+            
+            'layout': {
+                'title': 'Top 5 Categories by Proportion of Messages Received',
+                'yaxis': {
+                    'title': "Proportions"
+                },
+                'xaxis': {
+                    'title': "Message Types"
                 }
             }
         }
